@@ -1,6 +1,6 @@
-# **Many Labs 2**
+# **E-Value Re-Analysis of Many Labs 2**
 
-This page contains links to tutorials, information, script files and applications related to the [**ManyLabs 2**](https://osf.io/8cd4r/) project.
+Forked from [General ManyLabs2](https://github.com/ManyLabsOpenScience/ManyLabs2)
 
 
 ## Main supplementary materials
