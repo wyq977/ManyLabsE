@@ -196,9 +196,9 @@ get.cases <- function(rule,study.vars,study.vars.labels,stat.params){
     if(all(filtvars[[1]]%in%names(study.vars))){
       filtvars <- study.vars
       do <- plyr::laply(seq_along(filtvars),
-                  function(v) plyr::laply(seq_along(filtvars[[v]]),
-                                    function(vv) paste0(gsub("X", filtvars[[v]][vv],rule[r,2]),
-                                                        gsub("X",filtvars[[v]][vv], isna)))
+                        function(v) plyr::laply(seq_along(filtvars[[v]]),
+                                                function(vv) paste0(gsub("X", filtvars[[v]][vv],rule[r,2]),
+                                                                    gsub("X",filtvars[[v]][vv], isna)))
       )
     }
 
@@ -209,7 +209,7 @@ get.cases <- function(rule,study.vars,study.vars.labels,stat.params){
       for(r in 2:Nrule){
         filtvars <- unlist(study.vars.labels[names(study.vars.labels)%in%rule[r,1]])
         do  <- cbind(do, plyr::laply(seq_along(filtvars),
-                               function(vv) paste0(gsub("X",filtvars[[vv]],rule[r,2]))))
+                                     function(vv) paste0(gsub("X",filtvars[[vv]],rule[r,2]))))
       }
     }
     case <- plyr::llply(seq_along(pre), function(fr) paste0(pre[[fr]], paste0(do[fr, ],collapse = ' & '),")"))
@@ -220,9 +220,9 @@ get.cases <- function(rule,study.vars,study.vars.labels,stat.params){
     if(all(filtvars[[1]]%in%names(study.vars))){
       filtvars <- study.vars
       do <- plyr::llply(seq_along(filtvars),
-                  function(v) plyr::laply(seq_along(filtvars[[v]]),
-                                    function(vv) paste0(gsub("X",filtvars[[v]][vv],rule[r,2]),
-                                                        gsub("X",filtvars[[v]][vv],isna)))
+                        function(v) plyr::laply(seq_along(filtvars[[v]]),
+                                                function(vv) paste0(gsub("X",filtvars[[v]][vv],rule[r,2]),
+                                                                    gsub("X",filtvars[[v]][vv],isna)))
       )
     }
 
@@ -233,7 +233,7 @@ get.cases <- function(rule,study.vars,study.vars.labels,stat.params){
         if(rule[r,1]%in%names(do)){
           filtvars <- unlist(study.vars.labels[names(study.vars.labels)%in%rule[r,1]])
           do[[r]] <- c(do[[r]], plyr::laply(seq_along(filtvars),
-                                      function(vv) paste0(gsub("X",filtvars[[vv]],rule[r,2])))
+                                            function(vv) paste0(gsub("X",filtvars[[vv]],rule[r,2])))
           )
         }
       }
@@ -268,7 +268,7 @@ get.info <- function(keytable,cols, subset){
   if(subset!="all"){
     W <- ifelse(subset=="WEIRD",1,0)
     sites.include[[1]] <- paste0(sites.include[[1]][1],' & (Weird == ',W,')')
-    }
+  }
 
   # Find correct columns in this dataset according to ML2.key: 'ML2.in$study.vars'
   id.vars  <- which(cols%in%c(unlist(study.vars),'uID','.id','age','sex','source','Source.Global','Source.Primary','Source.Secondary','Country','Location','Language','Weird','SubjectPool','Setting','Tablet','Pencil','Execution', 'StudyOrderN','IDiffOrderN'))
@@ -301,7 +301,7 @@ get.sourceData <- function(ML2.id,ML2.df,ML2.in){
   for(i in seq_along(ML2.in$study.vars)){
     dfname[i] <- names(ML2.in$study.vars)[[i]]
     eval(parse(text=paste0(names(ML2.in$study.vars)[[i]],
-                           " <- dplyr::tbl_df(dplyr::select(ML2.df,",
+                           " <- tibble::as_tibble(dplyr::select(ML2.df,",
                            paste0(c(ML2.in$study.vars[[i]],'uID'), collapse=","),"))"))
     )
 
@@ -624,7 +624,7 @@ get.oriESCI <- function(CL=.95){
                                   alternative = ifelse(is.null(test$alternative),
                                                        ML2.ori$stat.params[[4]],
                                                        as.character(test$alternative)))
-                          )
+        )
       }
 
     } else {
@@ -632,9 +632,9 @@ get.oriESCI <- function(CL=.95){
     }
 
     if(is.null(ESCI$warning)|all(grepl("simpleWarning",ESCI$warning),
-           !grepl("Error", ESCI$value[[1]]),
-           !grepl("message", names(unlist(ESCI))[1]),
-           !is.na(test[1,1]))){
+                                 !grepl("Error", ESCI$value[[1]]),
+                                 !grepl("message", names(unlist(ESCI))[1]),
+                                 !is.na(test[1,1]))){
       ESCI  <- ESCI$value
       es.id <- which(colnames(ESCI)%in%"(ESCI.r|r)+")
     } else {
@@ -740,10 +740,10 @@ get.oriESCI <- function(CL=.95){
 #' df <- get.analyses(studies = 1, analysis.type = 1)
 #'
 #' # 'raw' pre-filter dataset
-#' head(tbl_df(df$raw.case$Huang.1))
+#' head(tibble::as_tibble(df$raw.case$Huang.1))
 #'
 #' # analysis results
-#' glimpse(tbl_df(df$merged.results$Huang.1))
+#' glimpse(tibble::as_tibble(df$merged.results$Huang.1))
 #'
 get.analyses <- function(studies       = NA,
                          analysis.type = NA,
@@ -904,8 +904,8 @@ get.analyses <- function(studies       = NA,
           if(runGroups[g]=="all"){
             gID <- rep(TRUE, nrow(ML2.df))
           } else {
-              gID <- ML2.df$source%in%runGroups[g]
-              }
+            gID <- ML2.df$source%in%runGroups[g]
+          }
         } else {
           gID <-  ML2.df$study.order%in%runGroups[g]
         }
@@ -955,16 +955,16 @@ get.analyses <- function(studies       = NA,
 
           if(listIT){
 
-          describe <- get.descriptives(stat.test = stat.test,
-                                       vars      = ML2.var[[g]],
-                                       keytable  = ML2.key[s,])
+            describe <- get.descriptives(stat.test = stat.test,
+                                         vars      = ML2.var[[g]],
+                                         keytable  = ML2.key[s,])
 
-          if(any(describe$descr.raw$n<Nmin.cond)){
-            listIT<- FALSE
-            nMin2 <- FALSE
-          }
+            if(any(describe$descr.raw$n<Nmin.cond)){
+              listIT<- FALSE
+              nMin2 <- FALSE
+            }
 
-          rm(describe)
+            rm(describe)
 
           }
 
@@ -1129,10 +1129,10 @@ get.analyses <- function(studies       = NA,
             cat("\nListIT = FALSE\n")
             if(!is.null(stat.test$value)){
 
-            if(grepl("observations",as.character(stat.test$value))){
-              disp(paste(s, ML2.key$study.analysis[[s]],'-',
-                         runGroups[g],'>> Not enough observations'),
-                   header = FALSE, footer = FALSE)}
+              if(grepl("observations",as.character(stat.test$value))){
+                disp(paste(s, ML2.key$study.analysis[[s]],'-',
+                           runGroups[g],'>> Not enough observations'),
+                     header = FALSE, footer = FALSE)}
             } else {
               disp(paste(s,ML2.key$study.analysis[[s]],'-', runGroups[g],'>> stat.test failed:'),
                    header = FALSE, footer = FALSE)
@@ -1197,15 +1197,15 @@ get.analyses <- function(studies       = NA,
 
   if(outdir$RDS_RESULTS!=""){
 
-  fname <- c(file.path(normalizePath(outdir$RDS_RESULTS),paste0("ML2_results_global_",subset,".rds")),
-             file.path(normalizePath(outdir$RDS_RESULTS),paste0("ML2_results_primary_",subset,".rds")),
-             file.path(normalizePath(outdir$RDS_RESULTS),paste0("ML2_results_secondary_",subset,".rds")),
-             file.path(normalizePath(outdir$RDS_RESULTS),paste0("Data_Figure_StudyOrder_",subset,".rds")))[tp]
+    fname <- c(file.path(normalizePath(outdir$RDS_RESULTS),paste0("ML2_results_global_",subset,".rds")),
+               file.path(normalizePath(outdir$RDS_RESULTS),paste0("ML2_results_primary_",subset,".rds")),
+               file.path(normalizePath(outdir$RDS_RESULTS),paste0("ML2_results_secondary_",subset,".rds")),
+               file.path(normalizePath(outdir$RDS_RESULTS),paste0("Data_Figure_StudyOrder_",subset,".rds")))[tp]
 
-  saveRDS(list(raw.case   = ML2.rawdata,
-               aggregated = ML2.output),file=fname)
+    saveRDS(list(raw.case   = ML2.rawdata,
+                 aggregated = ML2.output),file=fname)
 
-  disp(message = paste0("Saved RDS list object with data and ananlysis results to:\n",fname))
+    disp(message = paste0("Saved RDS list object with data and ananlysis results to:\n",fname))
   }
 
   options(wop)
@@ -1229,7 +1229,7 @@ get.analyses <- function(studies       = NA,
 #' \itemize{
 #' \item Returned if \code{dataSet = TRUE}  (default):
 #' \itemize{
-#' \item \code{df}:  A data table generated by \code{\link{tbl_df}} from package \code{dplyr}.
+#' \item \code{df}:  A data table generated by \code{\link{tibble::as_tibble}} from package \code{dplyr}.
 #' \item \code{info}: Information about the downloaded file including a time stamp, the URL and original row and column names.
 #' }
 #' \item Returned if \code{dataSet = FALSE}:
@@ -1249,7 +1249,7 @@ get.GoogleSheet <- function(url=NULL,data=c('ML1data','ML2masteRkey','ML2data')[
   # GET(url) will only get 100 rows, thanks to Sacha Epskamp for this "complete scrape" code.
   tmp  <- tempfile()
   info <- httr::GET(url, httr::write_disk(tmp, overwrite = TRUE))
-  df   <- dplyr::tbl_df(read.csv(tmp,  stringsAsFactors = FALSE, header = TRUE, skip = skip)) #import(tmp, format = "csv", stringsAsFactors = FALSE, header = TRUE))
+  df   <- tibble::as_tibble(read.csv(tmp,  stringsAsFactors = FALSE, header = TRUE, skip = skip)) #import(tmp, format = "csv", stringsAsFactors = FALSE, header = TRUE))
   if(dfCln==TRUE){
     df   <- df.Clean(df)
   } else {
@@ -1260,8 +1260,8 @@ get.GoogleSheet <- function(url=NULL,data=c('ML1data','ML2masteRkey','ML2data')[
 
   return(list(df = df$df,
               info = list(Info=info,
-                          GoogleSheet.colnames=dplyr::tbl_df(data.frame(ori.colnames=df$nms)),
-                          GoogleSheet.rownames=dplyr::tbl_df(data.frame(ori.rownames=df$rws))))
+                          GoogleSheet.colnames=tibble::as_tibble(data.frame(ori.colnames=df$nms)),
+                          GoogleSheet.rownames=tibble::as_tibble(data.frame(ori.rownames=df$rws))))
   )
 }
 
@@ -1305,7 +1305,7 @@ df.Clean <- function(df,Sep="."){
 #' \itemize{
 #' \item Returned if \code{dataSet = TRUE}  (default):
 #' \itemize{
-#' \item \code{df}:  A data table generated by \code{\link{tbl_df}} from package \code{dplyr}.
+#' \item \code{df}:  A data table generated by \code{\link{tibble::as_tibble}} from package \code{dplyr}.
 #' \item \code{info}: Information about the downloaded file including a time stamp, the URL and original row and column names.
 #' }
 #' \item Returned if \code{dataSet = FALSE}:
@@ -1369,8 +1369,8 @@ get.OSFfile <- function(code, dir = tempdir(), scanMethod, downloadMethod = c("h
     return(list(df   = df$df,
                 info = list(FilePath=FullPath,
                             Info=info,
-                            ori.Colnames= dplyr::tbl_df(data.frame(ori.colnames=df$nms)),
-                            ori.Rownames= dplyr::tbl_df(data.frame(ori.rownames=df$rws))
+                            ori.Colnames= tibble::as_tibble(data.frame(ori.colnames=df$nms)),
+                            ori.Rownames= tibble::as_tibble(data.frame(ori.rownames=df$rws))
                 ))
     )
   } else {
@@ -1390,7 +1390,7 @@ get.OSFfile <- function(code, dir = tempdir(), scanMethod, downloadMethod = c("h
 #' @export
 get.CSVdata <- function(path = NA, fID, finishedOnly=TRUE){
   if(!is.na(path)){
-  files <- file.path(path,fID)
+    files <- file.path(path,fID)
   } else {
     files <- fID
   }
@@ -1403,8 +1403,8 @@ get.CSVdata <- function(path = NA, fID, finishedOnly=TRUE){
     t1 <- scan(files,sep=",",nlines = 1,what="character", quiet = T)
     t2 <- scan(files,sep=",",skip = 1, nlines = 1,what="character", quiet = T)
     t1[1:10] <- t2[1:10]
-    df <- try.CATCH(dplyr::tbl_df(read.csv(files,skip=2,header=F,stringsAsFactors=F,col.names=t1)))
-    ifelse(is.data.frame(df$value), {df <- df$value}, {df <- dplyr::tbl_df(read.csv(files,skip = 2,header = F,stringsAsFactors = F,col.names = t1, fileEncoding="latin1"))})
+    df <- try.CATCH(tibble::as_tibble(read.csv(files,skip=2,header=F,stringsAsFactors=F,col.names=t1)))
+    ifelse(is.data.frame(df$value), {df <- df$value}, {df <- tibble::as_tibble(read.csv(files,skip = 2,header = F,stringsAsFactors = F,col.names = t1, fileEncoding="latin1"))})
   }
 
   if(finishedOnly){
@@ -1598,7 +1598,7 @@ get.descriptives <- function(stat.test, vars, keytable){
       descr.raw <- eval(parse(text = paste0("tmp %>% group_by(",names(id[id]),") %>% summarise(column = '",names(id[id]),"', n = n())")))
       #descr.raw <- plyr::ddply(tmp, names(tmp)[id], broom::tidy)
       #descr.raw <- descr.raw[!grepl("[*]",descr.raw$column), ]
-     colnames(descr.raw)[colnames(descr.raw)%in%names(id)[id]] <- paste("name")
+      colnames(descr.raw)[colnames(descr.raw)%in%names(id)[id]] <- paste("name")
     }
 
     if((esType=="X2")|(grepl("OR",esType))){
@@ -1755,7 +1755,7 @@ get.output <- function(key, vars, descr, group, analysis, varEqual, test, ESCI, 
     )
   } else {
 
-  # if(key$stat.type"OR"){
+    # if(key$stat.type"OR"){
     # Data list for calculating Effect Sizes CI based on NCP
     # output <- data.frame(
     #     study.id      = key$study.id,
@@ -1790,7 +1790,7 @@ get.output <- function(key, vars, descr, group, analysis, varEqual, test, ESCI, 
   names_missing <- colnames(output)[!colnames(output)%in%colnames(clean_out)]
 
   if(!all(grepl("fZ",names_missing))){
-     warning(paste(names_missing,collapse = " | "))
+    warning(paste(names_missing,collapse = " | "))
   }
   return(clean_out)
 }
@@ -1896,7 +1896,7 @@ testScript <- function(studies,
     saveRDS(dfout,file=fname)
   }
 
-   #setwd(dir.out)
+  #setwd(dir.out)
 
   if(saveCSVfile){
     cat(paste0("\nSaving raw cases...\n"))
@@ -1907,40 +1907,40 @@ testScript <- function(studies,
                           file = file.path(normalizePath(dir.out),"RAW_CASE",subset, paste0(names(dfout$raw.case)[d],"_",analysis[[tp]],"_RAW_CASE_",subset,".csv")))
             }
           })
-    }
+  }
 
-    if(tp==1){
-      cat(paste0("\nSaving global results...\n"))
-    }
+  if(tp==1){
+    cat(paste0("\nSaving global results...\n"))
+  }
 
-    if(between(tp,2,3)){
-      cat(paste0("\nSaving by_group results...\n"))
+  if(between(tp,2,3)){
+    cat(paste0("\nSaving by_group results...\n"))
 
-      l_ply(seq_along(dfout$aggregated),
-            function(d){
-              if(!is.null(dfout$merged.results[[d]])&NCOL(dfout$aggregated[[d]])>0){
-                rio::export(dfout$merged.results[[d]],
-                            paste0(dir.out,"/RESULTS_ANALYSIS/",subset,"/",
+    l_ply(seq_along(dfout$aggregated),
+          function(d){
+            if(!is.null(dfout$merged.results[[d]])&NCOL(dfout$aggregated[[d]])>0){
+              rio::export(dfout$merged.results[[d]],
+                          paste0(dir.out,"/RESULTS_ANALYSIS/",subset,"/",
                                  names(dfout$merged.results)[d],"_", analysis[[tp]],".csv"))}})
-      }
+  }
 
-    if(tp==4){
-      cat(paste0("\nSaving by_order results...\n"))
-    }
+  if(tp==4){
+    cat(paste0("\nSaving by_order results...\n"))
+  }
 
-l_ply(seq_along(dfout$aggregated),
-      function(d){
-        if(!is.null(dfout$aggregated[[d]])&NCOL(dfout$aggregated[[d]])>0){
-          rio::export(dfout$aggregated[[d]],
-                      file = file.path(normalizePath(dir.out),"RESULTS_ANALYSIS",subset,paste0(names(dfout$aggregated)[d],"_", analysis[[tp]],"_",subset,".csv")))}})
+  l_ply(seq_along(dfout$aggregated),
+        function(d){
+          if(!is.null(dfout$aggregated[[d]])&NCOL(dfout$aggregated[[d]])>0){
+            rio::export(dfout$aggregated[[d]],
+                        file = file.path(normalizePath(dir.out),"RESULTS_ANALYSIS",subset,paste0(names(dfout$aggregated)[d],"_", analysis[[tp]],"_",subset,".csv")))}})
 
 
-      # l_ply(seq_along(dfout$merged.results),
-      #       function(d){
-      #         if(!is.null(dfout$merged.results[[d]])&NCOL(dfout$merged.results[[d]])>0){
-      #           rio::export(dfout$merged.results[[d]],
-      #                       paste0(dir.out,"/RESULTS_ANALYSIS/by_order/",
-      #                              names(dfout$merged.results)[d],"_", analysis[[tp]],"_",subset,".csv"))}})}}
+  # l_ply(seq_along(dfout$merged.results),
+  #       function(d){
+  #         if(!is.null(dfout$merged.results[[d]])&NCOL(dfout$merged.results[[d]])>0){
+  #           rio::export(dfout$merged.results[[d]],
+  #                       paste0(dir.out,"/RESULTS_ANALYSIS/by_order/",
+  #                              names(dfout$merged.results)[d],"_", analysis[[tp]],"_",subset,".csv"))}})}}
 
   if(saveRDSfile){
     all <- plyr::ldply(dfout$aggregated)
@@ -1974,8 +1974,8 @@ generateOutput <-  function(describe = describe,
   ESCI <- list(value = NULL,
                warning = "init")
 
-  test  <- describe$test
-  descr <- describe$descr.raw
+  test  = describe$test
+  descr = describe$descr.raw
 
   if(grepl("OR",test$estype, fixed = TRUE)){
     Nv <- c(descr$n[1],descr$n[3])
@@ -1987,9 +1987,9 @@ generateOutput <-  function(describe = describe,
     }
   }
 
-if(is.null(test$method)){
-  test$method <- test$estype
-}
+  if(is.null(test$method)){
+    test$method <- test$estype
+  }
 
   if(!is.na(test[1,1])){
 
@@ -2000,8 +2000,7 @@ if(is.null(test$method)){
                               n1        = Nv[1],
                               n2        = Nv[2],
                               esType    = test$estype,
-                              var.lor   = var.lor,
-                              CIcalc    = TRUE,
+                              var.lor   = var.lor,CIcalc = TRUE,
                               CL        = ifelse(is.null(stat.params$conf.level),
                                                  .95,
                                                  stat.params$conf.level),
@@ -2009,9 +2008,9 @@ if(is.null(test$method)){
                               alternative = ifelse(is.null(test$alternative),
                                                    stat.params[[4]],
                                                    as.character(test$alternative))
-                              )
-                      )
-    }
+    )
+    )
+  }
 
 
   if(all(is.null(ESCI$warning),
@@ -2504,244 +2503,244 @@ renderHTMLresults <- function(pageID) {
 
 
 OutputTemplate <- function(){
-return(
-data.frame(
- results.generated = now(),
- study.id = NA,
- study.name = NA,
- study.slate = NA,
- study.mean = NA,
- study.source = NA,
- analysis.type = NA,
- analysis.name = NA,
- stat.N = NA,
- stat.n1 = NA,
- stat.n2 = NA,
- stat.cond1.name = NA,
- stat.cond1.column = NA,
- stat.cond1.n = NA,
- stat.cond1.count = NA,
- stat.cond1.prop.cond = NA,
- stat.cond1.prop.tot = NA,
- stat.cond1.value = NA,
- stat.cond1.mean = NA,
- stat.cond1.sd = NA,
- stat.cond1.median = NA,
- stat.cond1.trimmed = NA,
- stat.cond1.mad = NA,
- stat.cond1.min = NA,
- stat.cond1.max = NA,
- stat.cond1.range = NA,
- stat.cond1.skew = NA,
- stat.cond1.kurtosis = NA,
- stat.cond1.se = NA,
- stat.cond2.name = NA,
- stat.cond2.column = NA,
- stat.cond2.n = NA,
- stat.cond2.count = NA,
- stat.cond2.prop.cond = NA,
- stat.cond2.prop.tot = NA,
- stat.cond2.value = NA,
- stat.cond2.mean = NA,
- stat.cond2.sd = NA,
- stat.cond2.median = NA,
- stat.cond2.trimmed = NA,
- stat.cond2.mad = NA,
- stat.cond2.min = NA,
- stat.cond2.max = NA,
- stat.cond2.range = NA,
- stat.cond2.skew = NA,
- stat.cond2.kurtosis = NA,
- stat.cond2.se = NA,
- stat.cond3.name = NA,
- stat.cond3.column = NA,
- stat.cond3.n = NA,
- stat.cond3.count = NA,
- stat.cond3.n = NA,
- stat.cond3.prop.cond = NA,
- stat.cond3.prop.tot = NA,
- stat.cond3.value = NA,
- stat.cond3.mean = NA,
- stat.cond3.sd = NA,
- stat.cond3.median = NA,
- stat.cond3.trimmed = NA,
- stat.cond3.mad = NA,
- stat.cond3.min = NA,
- stat.cond3.max = NA,
- stat.cond3.range = NA,
- stat.cond3.skew = NA,
- stat.cond3.kurtosis = NA,
- stat.cond3.se = NA,
- stat.cond4.name = NA,
- stat.cond4.column = NA,
- stat.cond4.n = NA,
- stat.cond4.count = NA,
- stat.cond4.n = NA,
- stat.cond4.prop.cond = NA,
- stat.cond4.prop.tot = NA,
- stat.cond4.value = NA,
- stat.cond4.mean = NA,
- stat.cond4.sd = NA,
- stat.cond4.median = NA,
- stat.cond4.trimmed = NA,
- stat.cond4.mad = NA,
- stat.cond4.min = NA,
- stat.cond4.max = NA,
- stat.cond4.range = NA,
- stat.cond4.skew = NA,
- stat.cond4.kurtosis = NA,
- stat.cond4.se = NA,
- test.type = NA,
- test.estimate = NA,
- test.estimate1 = NA,
- test.estimate2 = NA,
- test.statistic = NA,
- test.p.value = NA,
- test.parameter = NA,
- test.conf.low = NA,
- test.conf.high = NA,
- test.method = NA,
- test.alternative = NA,
- test.estype = NA,
- test.varequal = NA,
- test.ConsoleOutput = NA,
- test.ncp = NA,
- test.ncp.lo = NA,
- test.ncp.hi = NA,
- test.table = NA,
- test.parameter1 = NA,
- test.parameter2 = NA,
- test.cohensQ = NA,
- test.cohensQ.l = NA,
- test.cohensQ.u = NA,
- test.bootR1 = NA,
- test.bootR2 = NA,
- test.bootCI.l = NA,
- test.bootCI.u = NA,
- test.fZ.r = NA,
- test.fZ.l.r = NA,
- test.fZ.u.r = NA,
- ESCI.estimate = NA,
- ESCI.statistic = NA,
- ESCI.p.value = NA,
- ESCI.parameter = NA,
- ESCI.conf.low = NA,
- ESCI.conf.high = NA,
- ESCI.method = NA,
- ESCI.alternative = NA,
- ESCI.estype = NA,
- ESCI.ncp = NA,
- ESCI.ncp.lo = NA,
- ESCI.ncp.hi = NA,
- ESCI.N.total = NA,
- ESCI.n.1 = NA,
- ESCI.n.2 = NA,
- ESCI.d = NA,
- ESCI.var.d = NA,
- ESCI.l.d = NA,
- ESCI.u.d = NA,
- ESCI.U3.d = NA,
- ESCI.cl.d = NA,
- ESCI.cliffs.d = NA,
- ESCI.pval.d = NA,
- ESCI.g = NA,
- ESCI.var.g = NA,
- ESCI.l.g = NA,
- ESCI.u.g = NA,
- ESCI.U3.g = NA,
- ESCI.cl.g = NA,
- ESCI.pval.g = NA,
- ESCI.r = NA,
- ESCI.var.r = NA,
- ESCI.l.r = NA,
- ESCI.u.r = NA,
- ESCI.pval.r = NA,
- ESCI.fisher.z = NA,
- ESCI.var.z = NA,
- ESCI.l.z = NA,
- ESCI.u.z = NA,
- ESCI.OR = NA,
- ESCI.l.or = NA,
- ESCI.u.or = NA,
- ESCI.pval.or = NA,
- ESCI.lOR = NA,
- ESCI.l.lor = NA,
- ESCI.u.lor = NA,
- ESCI.pval.lor = NA,
- ESCI.cohensQ = NA,
- ESCI.cohensQ.l = NA,
- ESCI.cohensQ.u = NA,
- ESCI.bootR1 = NA,
- ESCI.bootR2 = NA,
- ESCI.bootCI.l = NA,
- ESCI.bootCI.u = NA,
- source.Source = NA,
- source.Source.Global = NA,
- source.Location = NA,
- source.ReplicationPI = NA,
- source.Filename = NA,
- source.StudyOrder = NA,
- source.IDiffOrder = NA,
- source.Country = NA,
- source.Language = NA,
- source.Weird = NA,
- source.SubjectPool = NA,
- source.Setting = NA,
- source.Tablet = NA,
- source.Pencil = NA,
- source.Execution = NA,
- source.Slate = NA,
- source.source = NA,
- source.N.sources.global = NA,
- source.N.sources.primary = NA,
- source.N.sources.secondary = NA,
- source.N.countries = NA,
- source.N.locations = NA,
- source.N.languages = NA,
- source.N.studyorders1 = NA,
- source.N.studyorders2 = NA,
- source.N.IDiffOrderN = NA,
- source.N.uIDs = NA,
- source.N.cases.included = NA,
- source.N.cases.excluded = NA,
- source.Pct.WEIRD = NA,
- source.Tbl.Execution = NA,
- source.Tbl.subjectpool = NA,
- source.Tbl.setting = NA,
- source.Tbl.Tablet = NA,
- source.Tbl.Pencil = NA,
- source.Tbl.analysistype = NA,
- source.Tbl.subset = NA,
- stat.cond5.name = NA,
- stat.cond5.column = NA,
- stat.cond5.n = NA,
- stat.cond5.mean = NA,
- stat.cond5.sd = NA,
- stat.cond5.median = NA,
- stat.cond5.trimmed = NA,
- stat.cond5.mad = NA,
- stat.cond5.min = NA,
- stat.cond5.max = NA,
- stat.cond5.range = NA,
- stat.cond5.skew = NA,
- stat.cond5.kurtosis = NA,
- stat.cond5.se = NA,
- stat.cond6.name = NA,
- stat.cond6.column = NA,
- stat.cond6.n = NA,
- stat.cond6.mean = NA,
- stat.cond6.sd = NA,
- stat.cond6.median = NA,
- stat.cond6.trimmed = NA,
- stat.cond6.mad = NA,
- stat.cond6.min = NA,
- stat.cond6.max = NA,
- stat.cond6.range = NA,
- stat.cond6.skew = NA,
- stat.cond6.kurtosis = NA,
- stat.cond6.se = NA)
-)
- }
+  return(
+    data.frame(
+      results.generated = now(),
+      study.id = NA,
+      study.name = NA,
+      study.slate = NA,
+      study.mean = NA,
+      study.source = NA,
+      analysis.type = NA,
+      analysis.name = NA,
+      stat.N = NA,
+      stat.n1 = NA,
+      stat.n2 = NA,
+      stat.cond1.name = NA,
+      stat.cond1.column = NA,
+      stat.cond1.n = NA,
+      stat.cond1.count = NA,
+      stat.cond1.prop.cond = NA,
+      stat.cond1.prop.tot = NA,
+      stat.cond1.value = NA,
+      stat.cond1.mean = NA,
+      stat.cond1.sd = NA,
+      stat.cond1.median = NA,
+      stat.cond1.trimmed = NA,
+      stat.cond1.mad = NA,
+      stat.cond1.min = NA,
+      stat.cond1.max = NA,
+      stat.cond1.range = NA,
+      stat.cond1.skew = NA,
+      stat.cond1.kurtosis = NA,
+      stat.cond1.se = NA,
+      stat.cond2.name = NA,
+      stat.cond2.column = NA,
+      stat.cond2.n = NA,
+      stat.cond2.count = NA,
+      stat.cond2.prop.cond = NA,
+      stat.cond2.prop.tot = NA,
+      stat.cond2.value = NA,
+      stat.cond2.mean = NA,
+      stat.cond2.sd = NA,
+      stat.cond2.median = NA,
+      stat.cond2.trimmed = NA,
+      stat.cond2.mad = NA,
+      stat.cond2.min = NA,
+      stat.cond2.max = NA,
+      stat.cond2.range = NA,
+      stat.cond2.skew = NA,
+      stat.cond2.kurtosis = NA,
+      stat.cond2.se = NA,
+      stat.cond3.name = NA,
+      stat.cond3.column = NA,
+      stat.cond3.n = NA,
+      stat.cond3.count = NA,
+      stat.cond3.n = NA,
+      stat.cond3.prop.cond = NA,
+      stat.cond3.prop.tot = NA,
+      stat.cond3.value = NA,
+      stat.cond3.mean = NA,
+      stat.cond3.sd = NA,
+      stat.cond3.median = NA,
+      stat.cond3.trimmed = NA,
+      stat.cond3.mad = NA,
+      stat.cond3.min = NA,
+      stat.cond3.max = NA,
+      stat.cond3.range = NA,
+      stat.cond3.skew = NA,
+      stat.cond3.kurtosis = NA,
+      stat.cond3.se = NA,
+      stat.cond4.name = NA,
+      stat.cond4.column = NA,
+      stat.cond4.n = NA,
+      stat.cond4.count = NA,
+      stat.cond4.n = NA,
+      stat.cond4.prop.cond = NA,
+      stat.cond4.prop.tot = NA,
+      stat.cond4.value = NA,
+      stat.cond4.mean = NA,
+      stat.cond4.sd = NA,
+      stat.cond4.median = NA,
+      stat.cond4.trimmed = NA,
+      stat.cond4.mad = NA,
+      stat.cond4.min = NA,
+      stat.cond4.max = NA,
+      stat.cond4.range = NA,
+      stat.cond4.skew = NA,
+      stat.cond4.kurtosis = NA,
+      stat.cond4.se = NA,
+      test.type = NA,
+      test.estimate = NA,
+      test.estimate1 = NA,
+      test.estimate2 = NA,
+      test.statistic = NA,
+      test.p.value = NA,
+      test.parameter = NA,
+      test.conf.low = NA,
+      test.conf.high = NA,
+      test.method = NA,
+      test.alternative = NA,
+      test.estype = NA,
+      test.varequal = NA,
+      test.ConsoleOutput = NA,
+      test.ncp = NA,
+      test.ncp.lo = NA,
+      test.ncp.hi = NA,
+      test.table = NA,
+      test.parameter1 = NA,
+      test.parameter2 = NA,
+      test.cohensQ = NA,
+      test.cohensQ.l = NA,
+      test.cohensQ.u = NA,
+      test.bootR1 = NA,
+      test.bootR2 = NA,
+      test.bootCI.l = NA,
+      test.bootCI.u = NA,
+      test.fZ.r = NA,
+      test.fZ.l.r = NA,
+      test.fZ.u.r = NA,
+      ESCI.estimate = NA,
+      ESCI.statistic = NA,
+      ESCI.p.value = NA,
+      ESCI.parameter = NA,
+      ESCI.conf.low = NA,
+      ESCI.conf.high = NA,
+      ESCI.method = NA,
+      ESCI.alternative = NA,
+      ESCI.estype = NA,
+      ESCI.ncp = NA,
+      ESCI.ncp.lo = NA,
+      ESCI.ncp.hi = NA,
+      ESCI.N.total = NA,
+      ESCI.n.1 = NA,
+      ESCI.n.2 = NA,
+      ESCI.d = NA,
+      ESCI.var.d = NA,
+      ESCI.l.d = NA,
+      ESCI.u.d = NA,
+      ESCI.U3.d = NA,
+      ESCI.cl.d = NA,
+      ESCI.cliffs.d = NA,
+      ESCI.pval.d = NA,
+      ESCI.g = NA,
+      ESCI.var.g = NA,
+      ESCI.l.g = NA,
+      ESCI.u.g = NA,
+      ESCI.U3.g = NA,
+      ESCI.cl.g = NA,
+      ESCI.pval.g = NA,
+      ESCI.r = NA,
+      ESCI.var.r = NA,
+      ESCI.l.r = NA,
+      ESCI.u.r = NA,
+      ESCI.pval.r = NA,
+      ESCI.fisher.z = NA,
+      ESCI.var.z = NA,
+      ESCI.l.z = NA,
+      ESCI.u.z = NA,
+      ESCI.OR = NA,
+      ESCI.l.or = NA,
+      ESCI.u.or = NA,
+      ESCI.pval.or = NA,
+      ESCI.lOR = NA,
+      ESCI.l.lor = NA,
+      ESCI.u.lor = NA,
+      ESCI.pval.lor = NA,
+      ESCI.cohensQ = NA,
+      ESCI.cohensQ.l = NA,
+      ESCI.cohensQ.u = NA,
+      ESCI.bootR1 = NA,
+      ESCI.bootR2 = NA,
+      ESCI.bootCI.l = NA,
+      ESCI.bootCI.u = NA,
+      source.Source = NA,
+      source.Source.Global = NA,
+      source.Location = NA,
+      source.ReplicationPI = NA,
+      source.Filename = NA,
+      source.StudyOrder = NA,
+      source.IDiffOrder = NA,
+      source.Country = NA,
+      source.Language = NA,
+      source.Weird = NA,
+      source.SubjectPool = NA,
+      source.Setting = NA,
+      source.Tablet = NA,
+      source.Pencil = NA,
+      source.Execution = NA,
+      source.Slate = NA,
+      source.source = NA,
+      source.N.sources.global = NA,
+      source.N.sources.primary = NA,
+      source.N.sources.secondary = NA,
+      source.N.countries = NA,
+      source.N.locations = NA,
+      source.N.languages = NA,
+      source.N.studyorders1 = NA,
+      source.N.studyorders2 = NA,
+      source.N.IDiffOrderN = NA,
+      source.N.uIDs = NA,
+      source.N.cases.included = NA,
+      source.N.cases.excluded = NA,
+      source.Pct.WEIRD = NA,
+      source.Tbl.Execution = NA,
+      source.Tbl.subjectpool = NA,
+      source.Tbl.setting = NA,
+      source.Tbl.Tablet = NA,
+      source.Tbl.Pencil = NA,
+      source.Tbl.analysistype = NA,
+      source.Tbl.subset = NA,
+      stat.cond5.name = NA,
+      stat.cond5.column = NA,
+      stat.cond5.n = NA,
+      stat.cond5.mean = NA,
+      stat.cond5.sd = NA,
+      stat.cond5.median = NA,
+      stat.cond5.trimmed = NA,
+      stat.cond5.mad = NA,
+      stat.cond5.min = NA,
+      stat.cond5.max = NA,
+      stat.cond5.range = NA,
+      stat.cond5.skew = NA,
+      stat.cond5.kurtosis = NA,
+      stat.cond5.se = NA,
+      stat.cond6.name = NA,
+      stat.cond6.column = NA,
+      stat.cond6.n = NA,
+      stat.cond6.mean = NA,
+      stat.cond6.sd = NA,
+      stat.cond6.median = NA,
+      stat.cond6.trimmed = NA,
+      stat.cond6.mad = NA,
+      stat.cond6.min = NA,
+      stat.cond6.max = NA,
+      stat.cond6.range = NA,
+      stat.cond6.skew = NA,
+      stat.cond6.kurtosis = NA,
+      stat.cond6.se = NA)
+  )
+}
 
 # Rmd2htmlWP <- function(infile, outfile, sup = T) {
 #   require(markdown)
@@ -2844,8 +2843,7 @@ multi.PLOT <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
 any2any <- function(testInfo,
                     df1 = NULL,
                     df2 = NULL,
-                    N   = NULL,
-                    n1 = NULL, n2 = NULL,
+                    N   = NULL, n1 = NULL, n2 = NULL,
                     esType  = NA,
                     var.lor = NA,
                     CIcalc  = TRUE,
@@ -2936,17 +2934,17 @@ any2any <- function(testInfo,
     }
 
     if(grepl("Z.f", esType, fixed = TRUE)){
-       if(testInfo$method=="Fisher r-to-Z transformed test for difference between 1 observed correlation and a hypothesized value."){
-      sCI <- cbind(ncp    = testInfo$estimate,
-                   ncp.lo = testInfo$conf.low,
-                   ncp.hi = testInfo$conf.high)
-      esType <- esType.cl <- "r"
-      getCI <- FALSE
-    } else {
-      getCI <- FALSE
-      esType <- esType.cl <- "Z"
-      sCI <- cbind(ncp  = st)
-    }
+      if(testInfo$method=="Fisher r-to-Z transformed test for difference between 1 observed correlation and a hypothesized value."){
+        sCI <- cbind(ncp    = testInfo$estimate,
+                     ncp.lo = testInfo$conf.low,
+                     ncp.hi = testInfo$conf.high)
+        esType <- esType.cl <- "r"
+        getCI <- FALSE
+      } else {
+        getCI <- FALSE
+        esType <- esType.cl <- "Z"
+        sCI <- cbind(ncp  = st)
+      }
     }
 
     if(getCI){
@@ -2964,7 +2962,7 @@ any2any <- function(testInfo,
 
   for(cnt in seq_along(sCI)){
 
-   # browser()
+    # browser()
 
     x <- sCI[cnt]
     if(x==0|is.na(x)|is.nan(x)){
@@ -2986,7 +2984,7 @@ any2any <- function(testInfo,
            t.r  = esComp[[cnt]] <- compute.es::res(r = x, level=CL*100, var.r = ((1-x^2)^2)/(N-1),
                                                    n = N, verbose = FALSE, dig = 5),
            r  = esComp[[cnt]] <- compute.es::res(r = x, level=CL*100, var.r = NULL,
-                                                  n = N, verbose = FALSE, dig = 5),
+                                                 n = N, verbose = FALSE, dig = 5),
            #compute.es::res(r=x, level=CL, n=N, verbose = FALSE, dig = 5),
            f    = esComp[[cnt]] <- compute.es::fes(f=x, level=CL*100,
                                                    n.1 = n1, n.2 = n2, verbose = FALSE, dig = 5),
@@ -3053,25 +3051,25 @@ any2any <- function(testInfo,
   # unique(ML2.key$stat.type)
   #  "t"    "t.r"  "OR"   "lm.t" "Z"    "f"    "lm.Z"
   if(cnt>1){
-  if(!all((sign(ES$ncp)==sign(ES[ ,c("d","r")])),(sign(ES$ncp.lo)==sign(ES[ ,c("l.d","l.r")])),(sign(ES$ncp.hi)==sign(ES[ ,c("u.d","u.r")])), na.rm = TRUE) & !esType%in%c("OR","t.r","r")){
-    if(keepSign){
-      if(esType%in%c("X2","f")){
-        id.l <- which(colnames(ES) %in% c("l.d", "l.g", "l.r", "l.z"))
-        id.u <- which(colnames(ES) %in% c("u.d", "u.g", "u.r", "u.z"))
-        id.e <- which(colnames(ES) %in% c("d", "cliffs.d", "g", "r", "fisher.z"))
-        col.id <- c(id.e,id.l,id.u)
+    if(!all((sign(ES$ncp)==sign(ES[ ,c("d","r")])),(sign(ES$ncp.lo)==sign(ES[ ,c("l.d","l.r")])),(sign(ES$ncp.hi)==sign(ES[ ,c("u.d","u.r")])), na.rm = TRUE) & !esType%in%c("OR","t.r","r")){
+      if(keepSign){
+        if(esType%in%c("X2","f")){
+          id.l <- which(colnames(ES) %in% c("l.d", "l.g", "l.r", "l.z"))
+          id.u <- which(colnames(ES) %in% c("u.d", "u.g", "u.r", "u.z"))
+          id.e <- which(colnames(ES) %in% c("d", "cliffs.d", "g", "r", "fisher.z"))
+          col.id <- c(id.e,id.l,id.u)
+        }
+        if(any(esType%in%c("lm.Z","Z"))){ # esType=="Z"|esType=="lm.Z"
+          col.id <-which(colnames(ES)%in%c("d","l.d","u.d",keepSignNames))
+        }
+        if(esType%in%c("t","lm.t")){
+          col.id <-which(colnames(ES)%in%keepSignNames)
+        }
+        col.id <- sort(col.id)
+        ES[ ,col.id] <- ES[ ,col.id] * sign(sCI)[1:cnt]
       }
-      if(any(esType%in%c("lm.Z","Z"))){ # esType=="Z"|esType=="lm.Z"
-        col.id <-which(colnames(ES)%in%c("d","l.d","u.d",keepSignNames))
-      }
-      if(esType%in%c("t","lm.t")){
-        col.id <-which(colnames(ES)%in%keepSignNames)
-      }
-      col.id <- sort(col.id)
-      ES[ ,col.id] <- ES[ ,col.id] * sign(sCI)[1:cnt]
     }
   }
-}
   return(ES)
 }
 
@@ -3964,16 +3962,16 @@ varfun.Alter.1 <- function(vars){
   cleanDataFilter <- data.frame(uID = c(vars[[1]]$uID,
                                         vars[[2]]$uID),
                                 variable = c(rowSums(rbind(ok.Fluent[ ,id.Fluent.cols])),
-                                              rowSums(rbind(ok.DisFluent[ ,id.DisFluent.cols]))),
+                                             rowSums(rbind(ok.DisFluent[ ,id.DisFluent.cols]))),
                                 factor = c(rep(names(vars[1]),NROW(vars[[1]])),
-                                              rep(names(vars[2]),NROW(vars[[2]])))
-                                )
+                                           rep(names(vars[2]),NROW(vars[[2]])))
+  )
 
   return(list(Fluent    = rowSums(rbind(ok.Fluent[ ,id.Fluent.cols])),
               DisFluent = rowSums(rbind(ok.DisFluent[ ,id.DisFluent.cols])),
               N = c(nrow(ok.Fluent),nrow(ok.DisFluent)),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Alter.2
@@ -4019,9 +4017,9 @@ varfun.Alter.2 <- function(vars){
   cleanDataFilter <- data.frame(uID = c(vars[[1]]$uID,
                                         vars[[2]]$uID),
                                 variable = c(rowSums(rbind(ok.Fluent[ ,id.Fluent.cols])),
-                                              rowSums(rbind(ok.DisFluent[ ,id.DisFluent.cols]))),
+                                             rowSums(rbind(ok.DisFluent[ ,id.DisFluent.cols]))),
                                 factor = c(rep(names(vars[1]),NROW(vars[[1]])),
-                                              rep(names(vars[2]),NROW(vars[[2]])))
+                                           rep(names(vars[2]),NROW(vars[[2]])))
   )
 
   return(list(Fluent    = rowSums(ok.Fluent[,id.Fluent.cols]),
@@ -4066,7 +4064,7 @@ varfun.Alter.3 <- function(vars){
     # Get correct answers
     ok.Fluent   <- sapply(seq_along(vars$Fluent[,-NCOL(vars$Fluent)]), function(c) unlist(vars$Fluent[,c])%in%var.correct[[c]])
     ok.DisFluent<- sapply(seq_along(vars$DisFluent[,-NCOL(vars$DisFluent)]), function(c) unlist(vars$DisFluent[,c])%in%var.correct[[c]])
-     } else {
+  } else {
     ok.Fluent    <- rep(FALSE,6)
     ok.DisFluent <- rep(FALSE,6)
   }
@@ -4078,9 +4076,9 @@ varfun.Alter.3 <- function(vars){
   cleanDataFilter <- data.frame(uID = c(vars[[1]]$uID,
                                         vars[[2]]$uID),
                                 variable = c(rowSums(rbind(ok.Fluent[ ,id.Fluent.cols])),
-                                              rowSums(rbind(ok.DisFluent[ ,id.DisFluent.cols]))),
+                                             rowSums(rbind(ok.DisFluent[ ,id.DisFluent.cols]))),
                                 factor = c(rep(names(vars[1]),NROW(vars[[1]])),
-                                              rep(names(vars[2]),NROW(vars[[2]])))
+                                           rep(names(vars[2]),NROW(vars[[2]])))
   )
 
   return(list(Fluent    = rowSums(rbind(ok.Fluent[ ,id.Fluent.cols])),
@@ -4137,9 +4135,9 @@ varfun.Alter.4 <- function(vars){
   cleanDataFilter <- data.frame(uID = c(vars[[1]]$uID,
                                         vars[[2]]$uID),
                                 variable = c(rowSums(rbind(ok.Fluent[ ,id.Fluent.cols])),
-                                              rowSums(rbind(ok.DisFluent[ ,id.DisFluent.cols]))),
+                                             rowSums(rbind(ok.DisFluent[ ,id.DisFluent.cols]))),
                                 factor = c(rep(names(vars[1]),NROW(vars[[1]])),
-                                              rep(names(vars[2]),NROW(vars[[2]])))
+                                           rep(names(vars[2]),NROW(vars[[2]])))
   )
 
   return(list(Fluent    = rowSums(rbind(ok.Fluent[ ,id.Fluent.cols])),
@@ -4184,20 +4182,16 @@ varfun.Graham.1 <- function(vars){
 #'
 varfun.Graham.2 <- function(vars){
 
-  uID <- vars[[1]]$uID
-  vars$Individual <- vars$Indivdual %>% dplyr::select(-dplyr::one_of("uID"))
-
-
-  cleanDataFilter <- data.frame(uID = uID,
+  cleanDataFilter <- data.frame(uID = vars[[1]]$uID,
                                 variable1 = vars$Politics$politics,
                                 variable2 = rowMeans(vars$Individual, na.rm = TRUE)
-                                )
+  )
 
   return(list(Politics   = vars$Politics$politics,
               Individual = rowMeans(vars$Individual, na.rm = TRUE),
               N          = sum(complete.cases(rowMeans(vars$Individual,na.rm=TRUE), vars$Politics$politics)),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Rottenstreich.1
@@ -4240,14 +4234,14 @@ varfun.Bauer.1 <- function(vars){
                                         vars[[2]]$uID),
                                 variable = c(vars$Consumer[[2]],vars$Individual[[2]]),
                                 factor =  c(rep(names(vars[1]),NROW(vars[[1]])),
-                                               rep(names(vars[2]),NROW(vars[[2]]))))
+                                            rep(names(vars[2]),NROW(vars[[2]]))))
 
 
   return(list(Consumer  = vars$Consumer[[2]],
               Individual= vars$Individual[[2]],
               N         = c(length(vars$Consumer[[2]]),length(vars$Individual[[2]])),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Miyamoto.1
@@ -4318,7 +4312,7 @@ varfun.Miyamoto.2 <- function(vars){
               Moderator = scale(c(vars$CapitalCon[[3]],vars$CapitalPro[[3]]), scale=FALSE),
               N = c(nrow(vars$CapitalCon),nrow(vars$CapitalPro)),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 
@@ -4367,7 +4361,7 @@ varfun.Inbar.1 <- function(vars){
               r2=cbind(vars$DiffKiss['DSRd'],vars$DiffKiss[outcome]),
               N = c(nrow(vars$SameKiss),nrow(vars$DiffKiss)),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 
@@ -4391,7 +4385,7 @@ varfun.Inbar.2 <- function(vars){
               DiffKiss= vars$DiffKiss[[1]],
               N =  c(nrow(vars$SameKiss),nrow(vars$DiffKiss)),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 
@@ -4430,7 +4424,7 @@ varfun.Critcher.1 <- function(vars){
               P17    = as.numeric(vars$P17$crit2.1),
               N      =  c(nrow(vars$P97),nrow(vars$P17)),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' van.Lange.1
@@ -4491,7 +4485,7 @@ varfun.vanLange.1 <- function(vars){
               Siblings  = SVO.siblings$Total,
               N         = c(nrow(SVO.index),NULL),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Hauser.1
@@ -4594,7 +4588,7 @@ varfun.Anderson.1 <- function(vars){
               Condition = factor(c(rep("High",nrow(PANAShighPA)),rep("Low",nrow(PANASlowPA)))),
               N    = c(nrow(PANAShighPA), nrow(PANASlowPA)),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Ross.1
@@ -4621,7 +4615,7 @@ varfun.Ross.1 <- function(vars){
               You    = factor(vars$You[[1]],levels=c(1,2),labels=vars$labels$Response),
               N      = c(sum(vars$You[[1]]==1),sum(vars$You[[1]]==2)),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Ross.2
@@ -4647,7 +4641,7 @@ varfun.Ross.2 <- function(vars){
               You    = factor(vars$You[[1]],levels=c(1,2),labels=vars$labels$Response),
               N      = c(sum(vars$You[[1]]==1),sum(vars$You[[1]]==2)),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Giessner.1
@@ -4686,7 +4680,7 @@ varfun.Giessner.1 <- function(vars){
               Short  = rowMeans(Short[-1]),
               N      = c(nrow(Long),nrow(Short)),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Tversky.1
@@ -4723,7 +4717,7 @@ varfun.Tversky.1 <- function(vars){
               Response  = factor(c(vars$Cheap[[1]],vars$Expensive[[1]]),levels=c(1,2),labels=vars$labels$Response),
               N         = c(nrow(vars$Cheap),nrow(vars$Expensive)),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Hauser.2
@@ -4759,7 +4753,7 @@ varfun.Hauser.2 <- function(vars){
               Condition = factor(c(rep(1,N[1]),rep(2,N[2])),levels=c(1,2),labels=vars$labels$Condition),
               N = N,
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Risen.1
@@ -4784,7 +4778,7 @@ varfun.Risen.1 <- function(vars){
   cleanDataFilter <- data.frame(uID = c(vars$Unprepared$uID,vars$Prepared$uID),
                                 variable = c(as.numeric(vars$Unprepared[[1]]),as.numeric(vars$Prepared[[1]])),
                                 factor   =  factor(c(rep("Unprepared",NROW(vars$Unprepared[[1]])),
-                                                   rep("Prepared",NROW(vars$Prepared[[1]])))))
+                                                     rep("Prepared",NROW(vars$Prepared[[1]])))))
 
   return(list(Unprepared  = as.numeric(vars$Unprepared[[1]]),
               Prepared    = as.numeric(vars$Prepared[[1]]),
@@ -4964,7 +4958,7 @@ varfun.Savani.1 <- function(vars){
               Importance = Response$Importance,
               uID        = Response$uID,
               trialID    = as.numeric(Response$trialID),
-              df         = tbl_df(Response),
+              df         = tibble::as_tibble(Response),
               N          = c(nrow(vars$Interpersonal),nrow(vars$Personal)),
               cleanDataFilter = cleanDataFilter)
   )
@@ -4999,8 +4993,8 @@ varfun.Norenzayan.1 <- function(vars){
   return(list(Belong  = rowMeans(vars$Belong == matrix(rep(1:2,10), nrow=nrow(vars$Belong), ncol=20, byrow = TRUE), na.rm = TRUE),
               Similar = rowMeans(vars$Similar == matrix(rep(1:2,10), nrow=nrow(vars$Similar), ncol=20, byrow = TRUE), na.rm = TRUE),
               N       = c(nrow(vars$Belong), nrow(vars$Similar)),
-         cleanDataFilter = cleanDataFilter)
-         )
+              cleanDataFilter = cleanDataFilter)
+  )
 
   # return(list(Belong  = rowMeans(vars$Belong==rep(1:2,10),na.rm=TRUE),
   #             Similar = rowMeans(vars$Similar==rep(1:2,10),na.rm=TRUE),
@@ -5131,7 +5125,7 @@ varfun.Gray.2 <- function(vars){
   return(list(adultHbaby = as.numeric(vars$adultHbaby[[1]]),
               babyHadult = as.numeric(vars$babyHadult[[1]]),
               N     = c(length(as.numeric(vars$adultHbaby[[1]])),length(as.numeric(vars$babyHadult[[1]]))),
-         cleanDataFilter = cleanDataFilter))
+              cleanDataFilter = cleanDataFilter))
 }
 
 #' varfun.Zhong.1
@@ -5229,9 +5223,9 @@ varfun.Zhong.2 <- function(vars){
   idOther <- c(1,4,5,6,9)+1
 
   Response  = c(rowMeans(vars$Ethical[,idClean]),
-                            rowMeans(vars$Ethical[,idOther]),
-                            rowMeans(vars$Unethical[,idClean]),
-                            rowMeans(vars$Unethical[,idOther]))
+                rowMeans(vars$Ethical[,idOther]),
+                rowMeans(vars$Unethical[,idClean]),
+                rowMeans(vars$Unethical[,idOther]))
 
   Condition = factor(c(rep(1,times=nrow(vars$Ethical)),
                        rep(1,times=nrow(vars$Ethical)),
@@ -5263,7 +5257,7 @@ varfun.Zhong.2 <- function(vars){
               uID = uID,
               N = N,
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Zhong.3
@@ -5346,7 +5340,7 @@ varfun.Schwarz.1 <- function(vars){
               r2 = cbind(vars$GlobalFirst[,1],vars$GlobalFirst[,2]),
               N  = c(nrow(vars$SpecificFirst),nrow(vars$GlobalFirst)),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Schwarz.2
@@ -5416,8 +5410,8 @@ varfun.Shafir.1 <- function(vars){
                                variable1 = Response,
                                variable2 = factor(c(rep("Award",N[1]), rep("Deny",N[2]))),
                                parentB = rep(sum(c(sum(vars$Award$shaf1.1 == 2, na.rm = TRUE) / N[1],
-                                                 sum(vars$Deny$shaf2.1  == 2, na.rm = TRUE) / N[2]),
-                                               na.rm = TRUE)/2,NROW(Response)))
+                                                   sum(vars$Deny$shaf2.1  == 2, na.rm = TRUE) / N[2]),
+                                                 na.rm = TRUE)/2,NROW(Response)))
 
   return(list(Response  = Response,
               Condition = factor(c(rep("Award",N[1]), rep("Deny",N[2]))),
@@ -5457,13 +5451,13 @@ varfun.Zaval.1 <- function(vars){
   cleanDataFilter = data.frame(uID =c(vars$Cold$uID[idC],vars$Heat$uID[idH]),
                                variable =c(as.numeric(unlist(vars$Cold[idC,1])),as.numeric(unlist(vars$Heat[idH,1]))),
                                factor = factor(c(rep("Cold",sum(idC)), rep("Heat",sum(idH))))
-                               )
+  )
 
   return(list(Cold = as.numeric(unlist(vars$Cold[idC,1])),
               Heat = as.numeric(unlist(vars$Heat[idH,1])),
               N    = c(length(as.numeric(unlist(vars$Cold[idC,1]))),length(as.numeric(unlist(vars$Heat[idH,1])))),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 
@@ -5489,13 +5483,13 @@ varfun.Knobe.1 <- function(vars){
   cleanDataFilter = data.frame(uID =c(vars$Help$uID,vars$Harm$uID),
                                variable =c(unlist(vars$Help[,1]),unlist(vars$Harm[,1])),
                                factor = factor(c(rep("Help",length(unlist(vars$Help[,1]))), rep("Harm",length(unlist(vars$Harm[,1])))))
-                               )
+  )
 
   return(list(Help = unlist(vars$Help[,1]),
               Harm = unlist(vars$Harm[,1]),
               N    = c(length(unlist(vars$Help[,1])), length(unlist(vars$Harm[,1]))),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Knobe.2
@@ -5527,7 +5521,7 @@ varfun.Knobe.2 <- function(vars){
               Blame  = unlist(vars$Blame[,1]),
               N    = c(length(unlist(vars$Praise[,1])), length(unlist(vars$Blame[,1]))),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Gati.1
@@ -5595,7 +5589,7 @@ varfun.Gati.1 <- function(vars){
               itemID     = df$itemID,
               N          = c(nrow(vars[[1]]),nrow(vars[[2]])),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Gati.2
@@ -5654,9 +5648,9 @@ varfun.Gati.2 <- function(vars){
 
   # Subject based dataset
   df.subj <- dplyr::summarize(dplyr::group_by(df, uID, Condition, CounterBalance),
-                       stimDVm = mean(DV,na.rm = TRUE),
-                       # study.order = paste0(unique(study.order), collapse = "|"),
-                       # Country = paste0(unique(Country), collapse = "|")
+                              stimDVm = mean(DV,na.rm = TRUE),
+                              # study.order = paste0(unique(study.order), collapse = "|"),
+                              # Country = paste0(unique(Country), collapse = "|")
   )
 
   df.subj.wide  <- tidyr::spread(df.subj, key = Condition, value = stimDVm)
@@ -5673,7 +5667,7 @@ varfun.Gati.2 <- function(vars){
               CompareTo  = 0,
               N          = c(nrow(df.subj.wide),NULL),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 #' varfun.Gati.3
@@ -5735,7 +5729,7 @@ varfun.Gati.3 <- function(vars){
   # Item based dataset
   df.stim <- summarize(group_by(df, itemID, Condition), # interaction(Condition, CounterBalance)),
                        stimDV = mean(DV,na.rm = TRUE)
-                       )
+  )
 
   cleanDataFilter <- df.stim
 
@@ -5743,7 +5737,7 @@ varfun.Gati.3 <- function(vars){
               Condition = df.stim$Condition,
               N         = c( sum(df.stim$Condition%in%"Prominent1st"), NULL),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 
@@ -5833,13 +5827,13 @@ varfun.Gati.4 <- function(vars){
               Order      = factor(Order.n, levels=c(0,1), labels = vars$labels$Order),
               N          = c(sum(Order.n==0,na.rm = TRUE),sum(Order.n==1,na.rm = TRUE)),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 
   return(list(Asymmetry  = c(dfA$asym,dfB$asym),
               Order      = factor(c(as.numeric(TGafterN.cbA), as.numeric(TGafterN.cbB)), levels=c(0,1), labels = vars$labels$Order),
               N          = c(length(dfA$asym),length(dfB$asym)),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 
@@ -5910,7 +5904,7 @@ varfun.Gati.5 <- function(vars){
               Condition = df.stim$Condition,
               N         = c( sum(df.stim$Condition%in%"Prominent1st"), NULL),
               cleanDataFilter = cleanDataFilter)
-         )
+  )
 }
 
 

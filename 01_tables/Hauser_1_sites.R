@@ -16,13 +16,14 @@ source(file.path(project.root, "00_utils", "WYQ_manylabRs_SOURCE.R"))
 study.description <- "Trolley Dilemma 1 (Hauser et al., 2007)"
 analysis.unique.id <- 39
 analysis.name <- "Hauser.1"
-analysis.type <- 1 # 1 all, 3 sites
-analysis.type.name <- "study_global_include"
-analysis.type.groups <- "Source.Global"
+analysis.type <- 3
+analysis.type.name <- "study_secondary_include"
+analysis.type.groups <- "Source.Secondary"
 Nmin.raw <- 30
 Nmin.cond <- 15
 # subset -> subset.type to avoid conflicts
-subset.type <- "all" # "sites"
+subset.type <- "sites"
+
 
 # GET LOOKUP TABLES ----
 ML2.key <- rio::import(file.path(project.root, "00_data", "ML2_KeyTable.csv"))
@@ -37,6 +38,7 @@ if (ML2.key$study.slate == 1) {
 }
 
 # PREPARE DATA & OUTPUT ----
+
 # Add a unique ID
 ML2.df$uID <- seq(1, nrow(ML2.df))
 
@@ -48,12 +50,15 @@ ML2.in <- get.info(ML2.key, colnames(ML2.df), subset.type)
 ML2.id <- get.chain(ML2.in)
 
 # Apply the df chain to select relevant subset of variables
+
 ML2.df <- ML2.df %>%
   dplyr::select(2, 7, 181, 182, 191, 192, 521, 522, 523, 524, 525, 526, 527, 528, 529, 530, 531, 532, 535, 536, 537) %>%
-  dplyr::filter(is.character(source))
+  dplyr::filter(is.character(source) & (Weird == 0))
+
 
 # Decide which analyses to run on which groups
 toRun <- decide.analysis(ML2.key, analysis.unique.id, analysis.type, doAll = TRUE)
+
 
 if (nrow(ML2.df) <= 0 || length(toRun$studiess) <= 0) {
   print("No tests to run, nothing selected!")
@@ -65,7 +70,6 @@ ML2.df$study.order <- NA
 stmp <- strsplit(ML2.df$StudyOrderN, "[|]")
 
 # Correct differences in study names
-# TODO: a function to fix this
 Stud <- ML2.key$study.name
 
 ML2.df$study.order <- plyr::laply(seq_along(stmp), function(o) {
@@ -74,34 +78,69 @@ ML2.df$study.order <- plyr::laply(seq_along(stmp), function(o) {
 
 ML2.sr <- list()
 ML2.var <- list()
+outputSource <- list()
+dataSource <- list()
+raw.df <- list()
+clean.df <- list()
+cleanData <- list()
 testVarEqual <- ML2.in$stat.params$var.equal
 
-# analysis.type == 1 no for loop
-gID <- rep(TRUE, nrow(ML2.df))
-g <- 1
+# Loop over sites in runGroups within a study
+runGroups <- sort(na.exclude(unique(ML2.df[[toRun$ugroup]])))
+print(paste0(length(runGroups), " sites in total"))
 
-# Check nMin
-if (sum(gID, na.rm = TRUE) >= Nmin.raw) {
-  nMin1 <- TRUE
-  # Get a list containing the data frames to be used in the analysis
-  ML2.sr[[g]] <- get.sourceData(ML2.id, ML2.df[gID, ], ML2.in)
-}
+# START GROUPS ----
+# for (g in seq_along(runGroups)) {
+for (g in 1:2) {
 
-# Double-check nMin
-if (nMin1) {
-  compN <- ML2.sr[[g]]$N
-  compN1 <- sum(ML2.sr[[g]]$RawDataFilter[[1]]$Included, na.rm = TRUE)
-  compN2 <- sum(ML2.sr[[g]]$RawDataFilter[[2]]$Included, na.rm = TRUE)
-  if (any(compN >= Nmin.raw) & (all(compN1 >= Nmin.cond, compN2 >= Nmin.cond))) {
-    nMin2 <- TRUE
+  # Include only datasets that have N >= Nmin.raw & n.group >= Nmin.cond
+  listIT <- FALSE
+  nMin1 <- FALSE
+  nMin2 <- FALSE
+  compN <- compN1 <- compN2 <- 0
+
+  gID <- ML2.df$source %in% runGroups[g]
+
+  # Check nMin
+  if (sum(gID, na.rm = TRUE) >= Nmin.raw) {
+    nMin1 <- TRUE
+    # Get a list containing the data frames to be used in the analysis
+    ML2.sr[[g]] <- get.sourceData(ML2.id, ML2.df[gID, ], ML2.in)
   }
+
+  # Double-check nMin
+  if (nMin1) {
+    compN <- ML2.sr[[g]]$N
+    compN1 <- sum(ML2.sr[[g]]$RawDataFilter[[1]]$Included, na.rm = TRUE)
+    compN2 <- sum(ML2.sr[[g]]$RawDataFilter[[2]]$Included, na.rm = TRUE)
+    if (any(compN >= Nmin.raw) & (all(compN1 >= Nmin.cond, compN2 >= Nmin.cond))) {
+      nMin2 <- TRUE
+    }
+  }
+
+  # START ANALYSIS ----------------------------------------
+
+  if (all(nMin1, nMin2)) {
+    # To see the function code type:varfun.Hauser.1, or lookup in manylabRs_SOURCE.R
+    ML2.var[[g]] <- varfun.Hauser.1(ML2.sr[[g]])
+
+
+    # Check equal variance assumption
+    if (!is.na(testVarEqual)) {
+      if (testVarEqual) {
+        logtxt <- paste(analysis.unique.id, ML2.key$study.analysis, "-", runGroups[g])
+        ML2.in$stat.params$var.equal <- decide.EqualVar(ML2.var[[g]], ML2.in$study.vars.labels, ML2.key, group = logtxt) # don't pass the cleanData frame
+      }
+    }
+
+    # Run the analysis according to ML2.key: 'stat.test'
+    stat.params <<- ML2.in$stat.params
+
+    table <- with(ML2.var[[g]], table(Condition, Response))
+    print(paste0("Running test for ", runGroups[[g]]))
+    print(table)
+    print(fisher.exact(table)$p.value)
+    rm(table)
+  }
+
 }
-
-ML2.var[[g]] <- varfun.Hauser.1(ML2.sr[[g]])
-
-stat.params <<- ML2.in$stat.params
-
-table_global <- with(ML2.var[[g]], table(Condition, Response))
-
-test <- fisher.exact(table_global)
-test$estimate
