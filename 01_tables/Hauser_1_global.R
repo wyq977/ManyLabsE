@@ -10,6 +10,8 @@ library(exact2x2)
 project.root <- file.path("~", "projects", "manyLabsE")
 OSFdata.root <- file.path(project.root, "OSFdata")
 
+source(file.path(project.root, "00_utils", "WYQ_manylabRs_SOURCE.R"))
+
 # ANALYSIS INFO ----
 study.description <- "Trolley Dilemma 1 (Hauser et al., 2007)"
 analysis.unique.id <- 39
@@ -21,9 +23,6 @@ Nmin.raw <- 30
 Nmin.cond <- 15
 # subset -> subset.type to avoid conflicts
 subset.type <- "all" # "sites"
-
-source(file.path(project.root, "00_utils", "WYQ_manylabRs_SOURCE.R"))
-
 
 # GET LOOKUP TABLES ----
 ML2.key <- rio::import(file.path(project.root, "00_data", "ML2_KeyTable.csv"))

@@ -10,6 +10,8 @@ library(exact2x2)
 project.root <- file.path("~", "projects", "manyLabsE")
 OSFdata.root <- file.path(project.root, "OSFdata")
 
+source(file.path(project.root, "00_utils", "WYQ_manylabRs_SOURCE.R"))
+
 # ANALYSIS INFO ----
 study.description <- "Trolley Dilemma 1 (Hauser et al., 2007)"
 analysis.unique.id <- 39
@@ -21,8 +23,6 @@ Nmin.raw <- 30
 Nmin.cond <- 15
 # subset -> subset.type to avoid conflicts
 subset.type <- "sites"
-
-source(file.path(project.root, "00_utils", "WYQ_manylabRs_SOURCE.R"))
 
 
 # GET LOOKUP TABLES ----
@@ -58,6 +58,12 @@ ML2.df <- ML2.df %>%
 
 # Decide which analyses to run on which groups
 toRun <- decide.analysis(ML2.key, analysis.unique.id, analysis.type, doAll = TRUE)
+
+
+if (nrow(ML2.df) <= 0 || length(toRun$studiess) <= 0) {
+  print("No tests to run, nothing selected!")
+  stop()
+}
 
 # Create a variable indicating the study order for each case
 ML2.df$study.order <- NA
